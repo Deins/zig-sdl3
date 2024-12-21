@@ -27,6 +27,12 @@
             .url = "https://github.com/pwbh/ymlz/archive/refs/tags/0.3.4.tar.gz",
             .hash = "1220ed1736bf5f543a77a7bf205d884fa5c5e9393ab99f03401018c8af5792cf8373",
         },
+        // build scripts
+        .zig_sdl3 = .{
+            .lazy = true, // used only with -Dbuild_sdl
+            .url = "https://github.com/swan-www/zig_sdl3/archive/refs/tags/3.1.6.tar.gz",
+            .hash = "12203db5d6acf22b69b929ee32194e6352ca9406f0192e7d72dbc2907a1df4e32d8c",
+        },
     },
     .paths = .{
         "build.zig",

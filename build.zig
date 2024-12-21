@@ -22,24 +22,18 @@ pub fn build(b: *std.Build) !void {
     const extension_options = b.addOptions();
     const ext_image = b.option(bool, "ext_image", "Enable SDL_image extension") orelse false;
     extension_options.addOption(bool, "image", ext_image);
+    const build_sdl = b.option(bool, "build_sdl", "Fetch and build sdl from source") orelse false;
+    extension_options.addOption(bool, "built_from_src", build_sdl);
     sdl3.addOptions("extension_options", extension_options);
     _ = setupTest(b, cfg, extension_options, ext_image);
     // _ = try setupExamples(b, sdl3, cfg);
     _ = try runExample(b, sdl3, cfg, ext_image);
 
-    if (b.option([]const u8, "sdl3_include_path", "Path to where root SDL3 include directory is located")) |p| sdl3.addSystemIncludePath(.{ .cwd_relative = p });
-    if (b.option([]const u8, "sdl3_image_include_path", "Path to includes where SDL3_image directory is located")) |p| sdl3.addSystemIncludePath(.{ .cwd_relative = p });
-    if (target.result.os.tag == .windows) {
-        // SDL3 must be either compiled by yourself or precompiled files downloaded & headers (include) dir extracted:
-        // https://github.com/libsdl-org/SDL/releases/tag/preview-3.1.6
-        // https://github.com/libsdl-org/SDL_image/releases/tag/preview-3.1.0
-        const sdl3_dll_path = b.option([]const u8, "sdl3_dll_path", "Path to directory where SDL3.dll is located");
-        if (sdl3_dll_path) |p| {
-            b.installBinFile(b.pathJoin(&.{ p, "SDL3.dll" }), "SDL3.dll");
-            sdl3.addObjectFile(.{ .cwd_relative = b.pathJoin(&.{ p, "SDL3.dll" }) });
-        }
-    } else {
-        sdl3.linkSystemLibrary("SDL3", .{ .needed = true });
+    if (build_sdl) {
+        const sdl_build = b.lazyDependency("zig_sdl3", .{}) orelse return; // if not found return to fetch it
+        const sdl_build_module = sdl_build.module("sdl");
+        sdl3.addImport("sdl3_build", sdl_build_module);
+        sdl3.linkLibrary(sdl_build.artifact("sdl3"));
     }
 }
 
